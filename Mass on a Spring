@@ -1,0 +1,414 @@
+<html>
+<head>
+    
+  
+</script>
+
+  <meta charset="utf-8">
+  <title>A ball on a spring</title>
+<script data-dapp-detection="">!function(){let e=!1;function n(){if(!e){const n=document.createElement("meta");n.name="dapp-detected",document.head.appendChild(n),e=!0}}if(window.hasOwnProperty("ethereum")){if(window.__disableDappDetectionInsertion=!0,void 0===window.ethereum)return;n()}else{var t=window.ethereum;Object.defineProperty(window,"ethereum",{configurable:!0,enumerable:!1,set:function(e){window.__disableDappDetectionInsertion||n(),t=e},get:function(){if(!window.__disableDappDetectionInsertion){const e=arguments.callee;e&&e.caller&&e.caller.toString&&-1!==e.caller.toString().indexOf("getOwnPropertyNames")||n()}return t}})}}();</script></head>
+
+
+<body style="background-color:powderblue;">
+<center> 
+<h1>
+
+A ball on a spring
+</h1>
+<h2>
+By planedumbo
+</h2>
+</center>
+</body>
+<body style="font-family:sans-serif; font-size:15px; width:620px; margin-left:auto; margin-right:auto;" data-new-gr-c-s-check-loaded="14.1012.0" data-gr-ext-installed="" class="vsc-initialized">
+<center>
+
+
+    <canvas id="myCanvas" width="620" height="320"></canvas>
+    <div id="buttons">
+      <input type="button" id="play" value="Play" onclick="play()">
+      <input type="button" id="pause" value="Pause" onclick="pause()">
+      <input type="button" id="stepback" value="<< Step" onclick="stepBack()">
+      <input type="button" id="stepforward" value="Step >>" onclick="stepForward()">
+      <input type="button" id="reset" value="Reset" onclick="reset()">
+    </div>
+     <div>Set the spring constant</div>
+     <div id="slider1">
+      1 N/m <input type="range" id="kValue" min="1" max="4" value="2.0" step="0.1" oninput="showValue(this.value)" onchange="showValue(this.value)"> 4 N/m
+<div id="initialkValue">2.0</div>
+    </div>
+     <div>Set the mass of the ball</div>
+     <div id="slider2">
+      1 kg <input type="range" id="mValue" min="1" max="4" value="2.0" step="0.1" oninput="showMass(this.value)" onchange="showMass(this.value)"> 4 kg
+<div id="initialmValue">2.0</div>
+    </div>
+    <div id="moreButtons">Graph:
+      <input type="button" id="graph1" value="Position" onclick="positionGraph()">
+      <input type="button" id="graph2" value="Velocity" onclick="velocityGraph()">
+      <input type="button" id="graph3" value="Acceleration" onclick="accelerationGraph()">
+    </div>
+
+</center>
+
+  <script>
+
+      function showValue(newValue)
+      {
+             //get the element
+             var display = document.getElementById("initialkValue");
+             //show the amount
+             display.innerHTML=newValue;
+             k = Number(newValue);
+             omega = Math.sqrt(k/m);
+             reset();
+     }
+
+      function showMass(newMass)
+      {
+             //get the element
+             var display = document.getElementById("initialmValue");
+             //show the amount
+             display.innerHTML=newMass;
+             m = Number(newMass);
+             omega = Math.sqrt(k/m);
+             reset();
+     }
+
+      function play() {
+        window.clearTimeout(timer);
+        runFlag = 1;
+        runMotion();
+
+      }
+
+      function pause() {
+        window.clearTimeout(timer);
+        runFlag = 0;
+
+      }
+
+      function stepForward() {
+        window.clearTimeout(timer);
+        runFlag = 1;
+        drawMotion();
+
+      }
+
+      function stepBack() {
+        window.clearTimeout(timer);
+        index = index-2;
+        if (index < -1) index = -1;
+        time = index/20;
+        xPos = xBase;
+        runFlag = 1;
+        drawMotion();
+
+      }
+
+
+      function reset() {
+        window.clearTimeout(timer);
+        index = -1;
+        time = 0.0;
+        xPos = xBase;
+        runFlag = 1;
+        drawMotion();
+
+      }
+
+      function positionGraph() {
+        graphType = 1;
+        graphTitle = 'Position vs. time';
+        yAxisTitle = 'x (m)';
+        yIncrement = 0.5;
+        plotColor = '#ff00ff';
+        runFlag = 1;
+        reset();
+      }
+
+      function velocityGraph() {
+        graphType = 2;
+        graphTitle = 'Velocity vs. time';
+        yAxisTitle = 'v (m/s)';
+        yIncrement = 1.0;
+        plotColor = '#ff0000';
+        runFlag = 1;
+        reset();
+      }
+
+      function accelerationGraph() {
+        graphType = 3;
+        graphTitle = 'Acceleration vs. time';
+        yAxisTitle = 'a (m/s/s)';
+        yIncrement = 2.0;
+        plotColor = '#00bb00';
+        runFlag = 1;
+        reset();
+      }
+
+
+
+      var canvas = document.getElementById("myCanvas");
+      var context = canvas.getContext("2d");
+      var index = -1;
+      var xBase = 100;
+      var yBase = 50;
+      var xInit = 37;
+      var graphType = 1;
+      var graphTitle = 'Position vs. time';
+      var yAxisTitle = 'x (m)';
+      var slope = 0.4;
+      var yIncrement = 0.5;
+      var yNumDecimals = 1;
+      var yStart = yBase+160;
+      var plotColor = '#ff00ff';
+      var radius = 3;
+      var time = 0.0;
+      var x = 0.0;
+      var k = 2.0;
+      var m = 2.0;
+      var omega = Math.sqrt(k/m);
+      var A = 120.0;
+      var xPos = 200 + A;
+      var timer;
+      var runFlag = 1;
+
+      drawMotion();
+
+    function drawMotion() {
+
+  //    console.log("In the drawMotion function, with runFlag = " + runFlag );
+
+      if ((time >= 40.0)) runFlag = 0;
+
+  //    console.log("In the drawMotion function, with runFlag = " + runFlag + " xPos = " + xPos);
+
+      if (runFlag == 1) {    //      run if runFlag equal 1, not if equal 0
+        // clear
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        index = index + 1;
+        time = index/20.0;
+        xPos = 300 + A*Math.cos(omega*time);
+
+
+        // set background color for the entire thing
+           context.fillStyle = "#ffd";
+           context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // set background color for the graph
+           context.fillStyle = "#eff";
+           context.fillRect(xBase, yBase, 400, 160);
+
+        // set line color
+           context.strokeStyle = '#999';
+           context.lineWidth = 2;
+
+           var labelOfAxis = '';
+           var axisValue = 0;
+
+         // vertical grid lines
+         for (var i = 0; i <= 10; i++) {
+           context.beginPath();
+           context.moveTo(xBase+40*i, yBase);
+           context.lineTo(xBase+40*i, yBase+82);
+           context.stroke();
+           context.moveTo(xBase+40*i, yBase+116);
+           context.lineTo(xBase+40*i, yBase+160);
+           context.stroke();
+           context.font = '14pt Calibri';
+           context.fillStyle = 'black';
+           context.textAlign = 'center';
+           context.textBaseline = 'middle';
+           axisValue = 4*i;
+           labelOfAxis = axisValue.toFixed(0);
+           if (i>0) context.fillText(labelOfAxis, xBase+40*i, yBase+100);
+          }
+
+         // horizontal grid lines
+         for (i = 0; i <= 4; i++) {
+           context.beginPath();
+           context.moveTo(xBase-10, yBase+40*i);
+           context.lineTo(xBase+400, yBase+40*i);
+           context.stroke();
+           context.font = '14pt Calibri';
+           context.fillStyle = 'black';
+           context.textAlign = 'center';
+           context.textBaseline = 'middle';
+           axisValue = yIncrement*(2-i);
+           labelOfAxis = axisValue.toFixed(yNumDecimals);
+           context.fillText(labelOfAxis, xBase-30, yBase+40*i);
+
+          }
+
+         // x-axis
+           context.strokeStyle = '#000';
+           context.lineWidth = 4;
+           context.beginPath();
+           context.moveTo(xBase-1, yBase+80);
+           context.lineTo(xBase+420, yBase+80);
+           context.stroke();
+           context.moveTo(xBase+410, yBase+80-6);
+           context.lineTo(xBase+420, yBase+80);
+           context.lineTo(xBase+410, yBase+80+6);
+           context.lineJoin = 'miter';
+           context.stroke();
+           context.font = '16pt Calibri';
+           context.fillStyle = 'black';
+           context.textAlign = 'left';
+           context.fillText('t (s)', xBase+428, yBase+80);
+
+         // y-axis
+           context.strokeStyle = '#000';
+           context.beginPath();
+           context.moveTo(xBase, yBase-20);
+           context.lineTo(xBase, yBase+160);
+           context.stroke();
+           context.moveTo(xBase-6, yBase-10);
+           context.lineTo(xBase, yBase-20);
+           context.lineTo(xBase+6, yBase-10);
+           context.lineJoin = 'miter';
+           context.stroke();
+           context.strokeStyle = '#000';
+           context.textAlign = 'center';
+           context.fillText(yAxisTitle, xBase-45, 22);
+
+        // draw graph
+
+           if (graphType == 1) {
+             context.strokeStyle = plotColor;
+             context.beginPath();
+             context.moveTo(xBase, yBase);
+             for (var ival = 1; ival <=index; ival++) {
+               context.lineTo(xBase+10.0*ival/20.0, yBase+80-80*Math.cos(omega*ival/20.0));
+             }
+             context.stroke();
+           }
+
+            if (graphType == 2) {
+             context.strokeStyle = plotColor;
+             context.beginPath();
+             context.moveTo(xBase, yBase+80);
+             for (var ival = 1; ival <=index; ival++) {
+               context.lineTo(xBase+10.0*ival/20.0, yBase+80+40*omega*Math.sin(omega*ival/20.0));
+             }
+             context.stroke();
+           }
+
+            if (graphType == 3) {
+             context.strokeStyle = plotColor;
+             context.beginPath();
+             context.moveTo(xBase, yBase+80+20*omega*omega);
+             for (var ival = 1; ival <=index; ival++) {
+               context.lineTo(xBase+10.0*ival/20.0, yBase+80+20*omega*omega*Math.cos(omega*ival/20.0));
+             }
+             context.stroke();
+           }
+
+
+           // draw indicator marks
+           context.strokeStyle = 'black';
+           context.lineWidth = 2;
+           for (i = -2; i<=2; i++) {
+             context.beginPath();
+             context.moveTo(300+60*i, yBase+200);
+             context.lineTo(300+60*i, yBase+240);
+             context.stroke();
+            }
+
+
+         // draw the ball
+           context.beginPath();
+           context.arc(xPos, yBase+220, 2*Math.sqrt(m)*radius, 0, 2 * Math.PI, false);
+           context.fillStyle = '#f6f';
+           context.fill();
+           context.lineWidth = 2;
+           context.strokeStyle = '#000000';
+           context.stroke();
+
+           // draw the wall
+           context.strokeStyle = 'black';
+           context.lineWidth = 4;
+           context.beginPath();
+           context.moveTo(xBase, yBase+200);
+           context.lineTo(xBase, yBase+240);
+           context.stroke();
+
+           // draw the spring
+           context.strokeStyle = 'blue';
+           context.lineWidth = 1+k;
+           context.beginPath();
+           context.moveTo(xBase, yBase+220);
+           context.lineTo(xBase+0.05*(xPos-xBase), yBase+220);
+           context.lineTo(xBase+0.1*(xPos-xBase), yBase+210);
+           for (i=2; i<=8; i=i+2) {
+            context.lineTo(xBase+(i/10)*(xPos-xBase), yBase+230);
+            context.lineTo(xBase+((i+1)/10)*(xPos-xBase), yBase+210);
+           }
+           context.lineTo(xBase+0.95*(xPos-xBase), yBase+220);
+           context.lineTo(xBase+1.0*(xPos-xBase), yBase+220);
+           context.stroke();
+
+         // draw the force arrow
+           context.strokeStyle = '#393';
+           context.lineWidth = 3;
+           if (Math.abs(Math.cos(omega*time)) >= 0.05) {
+             context.beginPath();
+             context.moveTo(xPos, yBase+190);
+             context.lineTo(xPos-0.4*k*A*Math.cos(omega*time), yBase+190);
+             context.stroke();
+             context.moveTo(xPos-0.4*k*A*Math.cos(omega*time)+10*Math.abs(Math.cos(omega*time))/Math.cos(omega*time), yBase+190-6);
+             context.lineTo(xPos-0.4*k*A*Math.cos(omega*time), yBase+190);
+             context.lineTo(xPos-0.4*k*A*Math.cos(omega*time)+10*Math.abs(Math.cos(omega*time))/Math.cos(omega*time), yBase+190+6);
+             context.lineJoin = 'miter';
+             context.stroke();
+            }
+
+         // draw the velocity arrow
+           context.strokeStyle = '#d63';
+           context.lineWidth = 3;
+           if (Math.abs(Math.sin(omega*time)) >= 0.1) {
+             context.beginPath();
+             context.moveTo(xPos, yBase+250);
+             context.lineTo(xPos-0.6*omega*A*Math.sin(omega*time), yBase+250);
+             context.stroke();
+             context.moveTo(xPos-0.6*omega*A*Math.sin(omega*time)+10*Math.abs(Math.sin(omega*time))/Math.sin(omega*time), yBase+250-6);
+             context.lineTo(xPos-0.6*omega*A*Math.sin(omega*time), yBase+250);
+             context.lineTo(xPos-0.6*omega*A*Math.sin(omega*time)+10*Math.abs(Math.sin(omega*time))/Math.sin(omega*time), yBase+250+6);
+             context.lineJoin = 'miter';
+             context.stroke();
+            }
+
+           // graph title
+           context.font = 'bold 18pt Calibri';
+           context.fillStyle = 'purple';
+           context.textAlign = 'center';
+           context.fillText(graphTitle, (canvas.width)/2, 20);
+
+           context.font = '16pt Calibri';
+           context.fillStyle = 'black';
+
+
+        var timeLabel = 't = ';
+        timeLabel = timeLabel + time.toFixed(2) + ' s';
+        context.textAlign = 'left';
+        context.fillText(timeLabel, xBase+400, 270);
+
+      }
+    }
+
+    function runMotion() {
+        drawMotion();
+        if (runFlag == 1) {
+          timer = window.setTimeout(runMotion, 1000/30);
+        }
+      }
+
+  </script>
+
+
+
+
+
+
+</p></body></html>
